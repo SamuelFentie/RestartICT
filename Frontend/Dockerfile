@@ -1,19 +1,21 @@
-FROM node:16-alpine3.16 as build
+# Stage 1: Build Angular app with Node 18 Alpine
+FROM node:18-alpine as build
 
 WORKDIR /app
 
-# Copy package.json and package-lock.json files to working directory
-COPY ./package*.json ./ 
+# Copy package.json and package-lock.json (if exists)
+COPY ./package*.json ./
 
 # Install dependencies
 RUN npm ci
 
-# Copy all other source files
+# Copy all source files
 COPY . .
 
 # Build the Angular app
 RUN npm run build
 
+# Stage 2: Serve with nginx
 FROM nginx:1.23.0-alpine
 
 # Expose port 8080
@@ -22,5 +24,5 @@ EXPOSE 8080
 # Copy custom nginx config
 COPY nginx.conf /etc/nginx/nginx.conf
 
-# Copy built app from build stage
+# Copy built Angular app from build stage to nginx html directory
 COPY --from=build /app/dist/tester/ /usr/share/nginx/html/
