@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Cloud Run Deployment Script for RICT Platform
+# Frontend-only Cloud Run Deployment Script
 set -e
 
 # Configuration
@@ -14,16 +14,17 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
-echo -e "${GREEN}🚀 Deploying RICT Platform to Cloud Run${NC}"
+echo -e "${GREEN}🚀 Deploying Frontend to Cloud Run${NC}"
 echo "Project ID: $PROJECT_ID"
 echo "Region: $REGION"
 echo ""
 
-# No environment variables required for frontend-only deployment
-echo -e "${GREEN}✅ Frontend-only deployment - no environment variables required${NC}"
-
-# Backend URL is statically configured in frontend
-echo -e "${GREEN}✅ Using static backend URL: https://restartict-618223024788.europe-west1.run.app${NC}"
+# Check if dist folder exists
+if [ ! -d "Frontend/dist" ]; then
+    echo -e "${RED}❌ Frontend/dist folder not found. Please build the Angular app first:${NC}"
+    echo "cd Frontend && npm run build"
+    exit 1
+fi
 
 # Set the project
 echo -e "${YELLOW}📋 Setting project to $PROJECT_ID${NC}"
@@ -35,12 +36,8 @@ gcloud services enable cloudbuild.googleapis.com
 gcloud services enable run.googleapis.com
 gcloud services enable containerregistry.googleapis.com
 
-# Backend URL is statically configured
-BACKEND_URL="https://restartict-618223024788.europe-west1.run.app"
-echo -e "${GREEN}✅ Using static backend URL: $BACKEND_URL${NC}"
-
-# Build and deploy frontend
-echo -e "${YELLOW}🔨 Building and deploying frontend...${NC}"
+# Deploy frontend
+echo -e "${YELLOW}🔨 Deploying frontend...${NC}"
 gcloud run deploy $FRONTEND_SERVICE_NAME \
     --source Frontend \
     --region $REGION \
@@ -53,7 +50,6 @@ gcloud run deploy $FRONTEND_SERVICE_NAME \
 
 # Get the frontend URL
 FRONTEND_URL=$(gcloud run services describe $FRONTEND_SERVICE_NAME --region=$REGION --format='value(status.url)')
-echo -e "${GREEN}✅ Frontend deployed at: $FRONTEND_URL${NC}"
 
 echo ""
 echo -e "${GREEN}🎉 Frontend deployment completed successfully!${NC}"
@@ -62,8 +58,8 @@ echo -e "${YELLOW}📊 Service URL:${NC}"
 echo "Frontend: $FRONTEND_URL"
 echo ""
 echo -e "${YELLOW}🔧 Backend Configuration:${NC}"
-echo "Backend URL: $BACKEND_URL"
+echo "Backend URL: https://restartict-618223024788.europe-west1.run.app"
 echo ""
 echo -e "${YELLOW}📝 Next steps:${NC}"
 echo "1. Test the frontend at: $FRONTEND_URL"
-echo "2. Verify backend connection at: $BACKEND_URL/api/health"
+echo "2. Verify backend connection at: https://restartict-618223024788.europe-west1.run.app/api/health"

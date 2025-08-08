@@ -1,29 +1,11 @@
-# Build stage
-FROM node:18-alpine AS build
-
-# Set working directory
-WORKDIR /app
-
-# Copy package files
-COPY package*.json ./
-
-# Install dependencies
-RUN npm ci
-
-# Copy source code
-COPY . .
-
-# Build the application
-RUN npm run build
-
-# Production stage
-FROM nginx:alpine AS production
+# Simple nginx server for pre-built Angular app
+FROM nginx:alpine
 
 # Install curl for health checks
 RUN apk add --no-cache curl
 
-# Copy built application from build stage
-COPY --from=build /app/dist/rict/browser /usr/share/nginx/html
+# Copy the pre-built Angular app from dist folder
+COPY dist/rict/browser /usr/share/nginx/html
 
 # Copy custom nginx configuration
 COPY nginx.conf /etc/nginx/nginx.conf
