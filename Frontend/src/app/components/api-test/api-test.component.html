@@ -1,0 +1,128 @@
+<div class="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-lg border border-gray-200">
+  <div class="mb-6">
+    <h2 class="text-2xl font-bold text-gray-900 mb-2">API Connection Test</h2>
+    <p class="text-gray-600">Test the connection to the NestJS backend API</p>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="flex items-center justify-center py-8">
+    <svg class="animate-spin h-8 w-8 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+    </svg>
+    <span class="ml-3 text-gray-600">Testing API connection...</span>
+  </div>
+
+  <!-- Error Message -->
+  <div *ngIf="error" class="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+    <div class="flex">
+      <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+      </svg>
+      <div class="ml-3">
+        <p class="text-sm font-medium text-red-800">{{ error }}</p>
+        <button 
+          (click)="retryTests()"
+          class="mt-2 text-sm text-red-600 hover:text-red-800 underline"
+        >
+          Retry tests
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Test Results -->
+  <div *ngIf="!isLoading && Object.keys(testResults).length > 0" class="space-y-6">
+    
+    <!-- Bot Test -->
+    <div class="p-4 border rounded-lg" [class]="testResults.botTest?.success ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'">
+      <div class="flex items-center">
+        <svg *ngIf="testResults.botTest?.success" class="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+        </svg>
+        <svg *ngIf="!testResults.botTest?.success" class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+        </svg>
+        <h3 class="ml-2 text-lg font-medium" [class]="testResults.botTest?.success ? 'text-green-800' : 'text-red-800'">
+          Bot Status Test
+        </h3>
+      </div>
+      <div class="mt-2">
+        <p *ngIf="testResults.botTest?.success" class="text-sm text-green-700">
+          {{ testResults.botTest.message }}
+        </p>
+        <p *ngIf="!testResults.botTest?.success" class="text-sm text-red-700">
+          {{ testResults.botTest?.error }}
+        </p>
+        <div *ngIf="testResults.botTest?.instructions" class="mt-2 text-sm text-green-600">
+          <p class="font-medium">Instructions:</p>
+          <ul class="list-disc list-inside mt-1">
+            <li *ngFor="let instruction of testResults.botTest.instructions">{{ instruction }}</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Registration Status Test -->
+    <div class="p-4 border rounded-lg" [class]="testResults.registrationStatus?.success ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'">
+      <div class="flex items-center">
+        <svg *ngIf="testResults.registrationStatus?.success" class="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+        </svg>
+        <svg *ngIf="!testResults.registrationStatus?.success" class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+        </svg>
+        <h3 class="ml-2 text-lg font-medium" [class]="testResults.registrationStatus?.success ? 'text-green-800' : 'text-red-800'">
+          Registration Status Test
+        </h3>
+      </div>
+      <div class="mt-2">
+        <p *ngIf="testResults.registrationStatus?.success" class="text-sm text-green-700">
+          Registration is currently <strong>{{ testResults.registrationStatus.enabled ? 'enabled' : 'disabled' }}</strong>
+        </p>
+        <p *ngIf="!testResults.registrationStatus?.success" class="text-sm text-red-700">
+          {{ testResults.registrationStatus?.error }}
+        </p>
+      </div>
+    </div>
+
+    <!-- Users Test -->
+    <div class="p-4 border rounded-lg" [class]="testResults.users?.success ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'">
+      <div class="flex items-center">
+        <svg *ngIf="testResults.users?.success" class="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+        </svg>
+        <svg *ngIf="!testResults.users?.success" class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+        </svg>
+        <h3 class="ml-2 text-lg font-medium" [class]="testResults.users?.success ? 'text-green-800' : 'text-red-800'">
+          Users Test
+        </h3>
+      </div>
+      <div class="mt-2">
+        <p *ngIf="testResults.users?.success" class="text-sm text-green-700">
+          Total registered users: <strong>{{ testResults.users.total }}</strong>
+        </p>
+        <p *ngIf="!testResults.users?.success" class="text-sm text-red-700">
+          {{ testResults.users?.error }}
+        </p>
+        <div *ngIf="testResults.users?.users && testResults.users.users.length > 0" class="mt-2">
+          <p class="text-sm font-medium text-green-700">Registered users:</p>
+          <ul class="text-sm text-green-600 mt-1">
+            <li *ngFor="let user of testResults.users.users">{{ user.username }} ({{ user.telegramId }})</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Retry Button -->
+  <div class="mt-6 text-center">
+    <button
+      (click)="retryTests()"
+      class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+    >
+      Retry Tests
+    </button>
+  </div>
+</div>

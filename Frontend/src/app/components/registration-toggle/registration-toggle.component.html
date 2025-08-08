@@ -1,0 +1,134 @@
+<div class="max-w-md mx-auto p-6 bg-white rounded-lg shadow-lg border border-gray-200">
+  <div class="mb-6">
+    <h2 class="text-2xl font-bold text-gray-900 mb-2">Telegram Registration Control</h2>
+    <p class="text-gray-600">Enable or disable Telegram user registration</p>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="flex items-center justify-center py-8">
+    <svg class="animate-spin h-8 w-8 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+    </svg>
+    <span class="ml-3 text-gray-600">Loading status...</span>
+  </div>
+
+  <!-- Error Message -->
+  <div *ngIf="error" class="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+    <div class="flex">
+      <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+      </svg>
+      <div class="ml-3">
+        <p class="text-sm font-medium text-red-800">{{ error }}</p>
+        <button 
+          (click)="loadRegistrationStatus()"
+          class="mt-1 text-sm text-red-600 hover:text-red-800 underline"
+        >
+          Try again
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Status Display -->
+  <div *ngIf="!isLoading" class="mb-6">
+    <div class="flex items-center justify-between p-4 rounded-lg border" [class]="getStatusBgColor() + ' border-gray-200'">
+      <div class="flex items-center space-x-3">
+        <!-- Status Icon -->
+        <div [class]="getStatusColor()">
+          <svg *ngIf="isRegistrationEnabled" class="h-6 w-6" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+          </svg>
+          <svg *ngIf="!isRegistrationEnabled" class="h-6 w-6" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+          </svg>
+        </div>
+        
+        <!-- Status Text -->
+        <div>
+          <p class="text-sm font-medium text-gray-900">Registration Status</p>
+          <p [class]="'text-sm font-semibold ' + getStatusColor()">{{ getStatusText() }}</p>
+        </div>
+      </div>
+      
+      <!-- Last Updated -->
+      <div *ngIf="lastUpdated" class="text-right">
+        <p class="text-xs text-gray-500">Last updated</p>
+        <p class="text-xs font-medium text-gray-700">{{ lastUpdated | date:'short' }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toggle Switch -->
+  <div *ngIf="!isLoading" class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+    <div class="flex items-center space-x-3">
+      <span class="text-sm font-medium text-gray-700">Toggle Registration</span>
+      <span class="text-xs text-gray-500">({{ isRegistrationEnabled ? 'ON' : 'OFF' }})</span>
+    </div>
+    
+    <!-- Toggle Switch -->
+    <button
+      type="button"
+      (click)="toggleRegistration()"
+      [disabled]="isUpdating"
+      class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+      [class]="isRegistrationEnabled ? 'bg-blue-600' : 'bg-gray-200'"
+    >
+      <span
+        class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200"
+        [class]="isRegistrationEnabled ? 'translate-x-6' : 'translate-x-1'"
+      ></span>
+      
+      <!-- Loading Spinner -->
+      <div *ngIf="isUpdating" class="absolute inset-0 flex items-center justify-center">
+        <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+      </div>
+    </button>
+  </div>
+
+  <!-- Information Panel -->
+  <div *ngIf="!isLoading" class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+    <div class="flex items-start space-x-3">
+      <svg class="h-5 w-5 text-blue-400 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+      </svg>
+      <div>
+        <h3 class="text-sm font-medium text-blue-800">How it works</h3>
+        <div class="mt-1 text-sm text-blue-700">
+          <p *ngIf="isRegistrationEnabled">
+            Registration is currently <strong>enabled</strong>. New Telegram users can register with the bot.
+          </p>
+          <p *ngIf="!isRegistrationEnabled">
+            Registration is currently <strong>disabled</strong>. New Telegram users cannot register until registration is enabled.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Action Buttons -->
+  <div *ngIf="!isLoading" class="mt-6 flex space-x-3">
+    <button
+      type="button"
+      (click)="toggleRegistration()"
+      [disabled]="isUpdating"
+      class="flex-1 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      <span *ngIf="isUpdating">Updating...</span>
+      <span *ngIf="!isUpdating">{{ isRegistrationEnabled ? 'Disable' : 'Enable' }} Registration</span>
+    </button>
+    
+    <button
+      type="button"
+      (click)="loadRegistrationStatus()"
+      [disabled]="isUpdating"
+      class="px-4 py-2 text-gray-700 bg-gray-100 text-sm font-medium rounded-lg hover:bg-gray-200 focus:ring-2 focus:ring-gray-500 focus:border-gray-500 transition-colors duration-200"
+    >
+      Refresh
+    </button>
+  </div>
+</div>
