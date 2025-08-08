@@ -13,26 +13,23 @@ RUN npm ci
 # Copy source code
 COPY . .
 
+# Inject environment variables into the build
+RUN node build-inject-env.js
+
 # Build the application
 RUN npm run build
 
 # Production stage
 FROM nginx:alpine AS production
 
-# Install envsubst for environment variable substitution
-RUN apk add --no-cache bash
+# Install curl for health checks
+RUN apk add --no-cache curl
 
 # Copy built application from build stage
 COPY --from=build /app/dist/rict/browser /usr/share/nginx/html
 
-# Copy custom nginx configuration template
-COPY nginx.conf /etc/nginx/nginx.conf.template
-
-# Create startup script
-RUN echo '#!/bin/bash\n\
-envsubst < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf\n\
-nginx -g "daemon off;"' > /docker-entrypoint.sh && \
-chmod +x /docker-entrypoint.sh
+# Copy custom nginx configuration
+COPY nginx.conf /etc/nginx/nginx.conf
 
 # Expose port
 EXPOSE 80
@@ -41,5 +38,5 @@ EXPOSE 80
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD curl -f http://localhost/health || exit 1
 
-# Start nginx with environment variable substitution
-CMD ["/docker-entrypoint.sh"]
+# Start nginx
+CMD ["nginx", "-g", "daemon off;"]

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { environment } from '../../environments/environment';
+import { ConfigService } from './config.service';
 
 export interface BroadcastMessage {
   imageUrl?: string;
@@ -43,9 +43,11 @@ export interface UsersResponse {
   providedIn: 'root'
 })
 export class AdminService {
-  private apiUrl = environment.apiUrl;
+  private apiUrl: string;
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient, private configService: ConfigService) {
+    this.apiUrl = this.configService.apiUrl;
+  }
 
   // Broadcast a message to all registered users
   broadcastMessage(message: BroadcastMessage): Observable<BroadcastResponse> {
