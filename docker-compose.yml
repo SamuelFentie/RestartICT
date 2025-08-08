@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  # NestJS Backend
+  backend:
+    build:
+      context: ./Backend/nest-backend
+      dockerfile: Dockerfile
+      target: production
+    container_name: rict-backend
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - MONGODB_URI=${MONGODB_URI}
+      - TELEGRAM_TOKEN=${TELEGRAM_TOKEN}
+      - PORT=3000
+    ports:
+      - "3000:3000"
+    networks:
+      - rict-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Angular Frontend
+  frontend:
+    build:
+      context: ./Frontend
+      dockerfile: Dockerfile
+      target: production
+    container_name: rict-frontend
+    restart: unless-stopped
+    ports:
+      - "${FRONTEND_PORT:-8080}:80"  # Configurable port with default 8080
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - rict-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  rict-network:
+    driver: bridge
