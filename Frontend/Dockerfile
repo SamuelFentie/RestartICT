@@ -19,26 +19,27 @@ RUN npm run build
 # Production stage
 FROM nginx:alpine AS production
 
+# Install envsubst for environment variable substitution
+RUN apk add --no-cache bash
+
 # Copy built application from build stage
 COPY --from=build /app/dist/rict/browser /usr/share/nginx/html
 
-# Copy custom nginx configuration
-COPY nginx.conf /etc/nginx/nginx.conf
+# Copy custom nginx configuration template
+COPY nginx.conf /etc/nginx/nginx.conf.template
 
-# Create non-root user for security (optional - nginx can run as root in container)
-# RUN addgroup -g 1001 -S nginx && \
-#     adduser -S nginx -u 1001 && \
-#     chown -R nginx:nginx /usr/share/nginx/html
-
-# Switch to non-root user (commented out for now)
-# USER nginx
+# Create startup script
+RUN echo '#!/bin/bash\n\
+envsubst < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf\n\
+nginx -g "daemon off;"' > /docker-entrypoint.sh && \
+chmod +x /docker-entrypoint.sh
 
 # Expose port
 EXPOSE 80
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost/ || exit 1
+  CMD curl -f http://localhost/health || exit 1
 
-# Start nginx
-CMD ["nginx", "-g", "daemon off;"]
+# Start nginx with environment variable substitution
+CMD ["/docker-entrypoint.sh"]
