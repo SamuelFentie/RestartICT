@@ -15,6 +15,9 @@ COPY . .
 # Build the Angular app
 RUN npm run build
 
+# List dist folder for debug (optional)
+RUN ls -la dist/
+
 # Stage 2: Serve with nginx
 FROM nginx:1.23.0-alpine
 
@@ -25,4 +28,4 @@ EXPOSE 8080
 COPY nginx.conf /etc/nginx/nginx.conf
 
 # Copy built Angular app from build stage to nginx html directory
-COPY --from=build /app/dist/tester/ /usr/share/nginx/html/
+COPY --from=build /app/dist/browser/ /usr/share/nginx/html/
