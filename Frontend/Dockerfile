@@ -1,24 +1,11 @@
-# Angular development server
-FROM node:18-alpine
-
-# Set working directory
+FROM node:16-alpine3.16 as build
 WORKDIR /app
-
-# Copy package files
-COPY package*.json ./
-
-# Install dependencies
+COPY ./package*.json .
 RUN npm ci
-
-# Copy source code
 COPY . .
+RUN npm run build
 
-# Expose port
-EXPOSE 3000
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:3000 || exit 1
-
-# Start Angular development server
-CMD ["npm", "start", "--", "--host", "0.0.0.0", "--port", "3000", "--disable-host-check"]
+FROM nginx:1.23.0-alpine
+EXPOSE 8080
+COPY nginx.conf /etc/nginx/nginx.conf
+COPY --from=build /app/dist/tester /usr/share/nginx/html
