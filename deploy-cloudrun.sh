@@ -31,6 +31,9 @@ if [ -z "$TELEGRAM_TOKEN" ]; then
     exit 1
 fi
 
+# Backend URL is statically configured in frontend
+echo -e "${GREEN}✅ Using static backend URL: https://restartict-618223024788.europe-west1.run.app${NC}"
+
 # Set the project
 echo -e "${YELLOW}📋 Setting project to $PROJECT_ID${NC}"
 gcloud config set project $PROJECT_ID
@@ -54,9 +57,9 @@ gcloud run deploy $BACKEND_SERVICE_NAME \
     --max-instances 10 \
     --set-env-vars NODE_ENV=production,PORT=3000,MONGODB_URI="$MONGODB_URI",TELEGRAM_TOKEN="$TELEGRAM_TOKEN"
 
-# Get the backend URL
-BACKEND_URL=$(gcloud run services describe $BACKEND_SERVICE_NAME --region=$REGION --format='value(status.url)')
-echo -e "${GREEN}✅ Backend deployed at: $BACKEND_URL${NC}"
+# Backend URL is statically configured
+BACKEND_URL="https://restartict-618223024788.europe-west1.run.app"
+echo -e "${GREEN}✅ Using static backend URL: $BACKEND_URL${NC}"
 
 # Build and deploy frontend
 echo -e "${YELLOW}🔨 Building and deploying frontend...${NC}"
@@ -68,8 +71,7 @@ gcloud run deploy $FRONTEND_SERVICE_NAME \
     --port 80 \
     --memory 256Mi \
     --cpu 1 \
-    --max-instances 10 \
-    --set-env-vars BACKEND_URL="$BACKEND_URL"
+    --max-instances 10
 
 # Get the frontend URL
 FRONTEND_URL=$(gcloud run services describe $FRONTEND_SERVICE_NAME --region=$REGION --format='value(status.url)')

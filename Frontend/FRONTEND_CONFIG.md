@@ -2,38 +2,36 @@
 
 ## Backend URL Configuration
 
-The frontend now supports dynamic backend URL configuration through environment variables. This allows the frontend to connect to the backend service when deployed to Cloud Run.
+The frontend is configured with a static backend URL that points to the deployed backend service.
+
+### Current Configuration:
+
+- **Backend URL**: `https://restartict-618223024788.europe-west1.run.app`
+- **API Endpoint**: `https://restartict-618223024788.europe-west1.run.app/api`
 
 ### How it works:
 
-1. **Build Time**: The `build-inject-env.js` script reads the `BACKEND_URL` environment variable and injects it into the HTML.
+1. **Static Configuration**: The backend URL is hardcoded in both:
+   - `Frontend/src/environments/environment.ts`
+   - `Frontend/src/app/services/config.service.ts`
 
-2. **Runtime**: The `ConfigService` reads the backend URL from either:
-   - A meta tag in the HTML head
-   - A global window variable
-   - Falls back to relative path `/api` if neither is available
+2. **API Calls**: All API calls use the static backend URL through the `AdminService`.
 
-3. **API Calls**: All API calls use the configured backend URL through the `AdminService`.
+3. **No Environment Variables**: No need to pass backend URL as environment variables during deployment.
 
-### Environment Variables:
+### Files Modified:
 
-- `BACKEND_URL`: The full URL of the backend service (e.g., `https://rict-backend-abc123-uc.a.run.app`)
+- `Frontend/src/environments/environment.ts` - Static API URL
+- `Frontend/src/app/services/config.service.ts` - Static backend URL
+- `deploy-cloudrun.sh` - Removed dynamic backend URL logic
 
-### Local Development:
+### Deployment:
 
-For local development, the frontend will use the relative path `/api` which works with the nginx proxy configuration.
+The frontend can now be deployed independently without needing to know the backend URL at build time. The backend URL is statically configured in the source code.
 
-### Cloud Run Deployment:
+### To Change Backend URL:
 
-When deployed to Cloud Run, the deployment script automatically:
-1. Deploys the backend first
-2. Gets the backend URL
-3. Passes the backend URL to the frontend build process
-4. Deploys the frontend with the correct backend URL
-
-### Fallback Behavior:
-
-If no backend URL is configured, the frontend will use relative paths (`/api`) which works for:
-- Local development with nginx proxy
-- Single-container deployments
-- Cases where the backend URL is not available
+If you need to change the backend URL, update it in:
+1. `Frontend/src/environments/environment.ts`
+2. `Frontend/src/app/services/config.service.ts`
+3. `deploy-cloudrun.sh` (if you want to update the display message)

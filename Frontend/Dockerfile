@@ -13,9 +13,6 @@ RUN npm ci
 # Copy source code
 COPY . .
 
-# Inject environment variables into the build
-RUN node build-inject-env.js
-
 # Build the application
 RUN npm run build
 
