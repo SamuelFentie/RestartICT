@@ -1,31 +1,30 @@
-# Stage 1: Build Angular app with Node 18 Alpine
-FROM node:18-alpine as build
+# Stage 1: Build Angular app
+FROM node:18-alpine AS build
 
+# Set working directory to root (since your files are here)
 WORKDIR /app
 
-# Copy package.json and package-lock.json (if exists)
-COPY ./package*.json ./
-
-# Install dependencies
+# Copy package files and install dependencies
+COPY package*.json ./
 RUN npm ci
 
-# Copy all source files
+# Copy everything (including src and Dockerfile) to working directory
 COPY . .
 
-# Build the Angular app
+# Build the Angular app (outputs to dist/browser)
 RUN npm run build
 
-# List dist folder for debug (optional)
-RUN ls -la dist/
-
-# Stage 2: Serve with nginx
+# Stage 2: Serve app with Nginx
 FROM nginx:1.23.0-alpine
 
-# Expose port 8080
+# Expose port 8080 (or 80 if you want)
 EXPOSE 8080
 
-# Copy custom nginx config
+# Copy your custom nginx config if you have one
 COPY nginx.conf /etc/nginx/nginx.conf
 
-# Copy built Angular app from build stage to nginx html directory
-COPY --from=build /dist/browser/ /usr/share/nginx/html/
+# Copy Angular build output from the build stage to nginx html directory
+COPY --from=build /app/dist/browser/ /usr/share/nginx/html/
+
+# Start nginx server
+CMD ["nginx", "-g", "daemon off;"]
