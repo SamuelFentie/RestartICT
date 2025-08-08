@@ -28,4 +28,4 @@ EXPOSE 8080
 COPY nginx.conf /etc/nginx/nginx.conf
 
 # Copy built Angular app from build stage to nginx html directory
-COPY --from=build /app/dist/browser/ /usr/share/nginx/html/
+COPY --from=build /dist/browser/ /usr/share/nginx/html/
