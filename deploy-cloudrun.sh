@@ -46,8 +46,8 @@ gcloud run deploy $FRONTEND_SERVICE_NAME \
     --region $REGION \
     --platform managed \
     --allow-unauthenticated \
-    --port 80 \
-    --memory 256Mi \
+    --port 3000 \
+    --memory 512Mi \
     --cpu 1 \
     --max-instances 10
 

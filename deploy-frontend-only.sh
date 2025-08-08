@@ -19,10 +19,9 @@ echo "Project ID: $PROJECT_ID"
 echo "Region: $REGION"
 echo ""
 
-# Check if dist folder exists
-if [ ! -d "Frontend/dist" ]; then
-    echo -e "${RED}❌ Frontend/dist folder not found. Please build the Angular app first:${NC}"
-    echo "cd Frontend && npm run build"
+# Check if package.json exists
+if [ ! -f "Frontend/package.json" ]; then
+    echo -e "${RED}❌ Frontend/package.json not found. Please check the Frontend directory.${NC}"
     exit 1
 fi
 
@@ -43,8 +42,8 @@ gcloud run deploy $FRONTEND_SERVICE_NAME \
     --region $REGION \
     --platform managed \
     --allow-unauthenticated \
-    --port 80 \
-    --memory 256Mi \
+    --port 3000 \
+    --memory 512Mi \
     --cpu 1 \
     --max-instances 10
 

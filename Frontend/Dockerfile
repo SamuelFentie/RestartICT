@@ -1,21 +1,24 @@
-# Simple nginx server for pre-built Angular app
-FROM nginx:alpine
+# Angular development server
+FROM node:18-alpine
 
-# Install curl for health checks
-RUN apk add --no-cache curl
+# Set working directory
+WORKDIR /app
 
-# Copy the pre-built Angular app from dist folder
-COPY dist/rict/browser /usr/share/nginx/html
+# Copy package files
+COPY package*.json ./
 
-# Copy custom nginx configuration
-COPY nginx.conf /etc/nginx/nginx.conf
+# Install dependencies
+RUN npm ci
+
+# Copy source code
+COPY . .
 
 # Expose port
-EXPOSE 80
+EXPOSE 3000
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost/health || exit 1
+  CMD curl -f http://localhost:3000 || exit 1
 
-# Start nginx
-CMD ["nginx", "-g", "daemon off;"]
+# Start Angular development server
+CMD ["npm", "start", "--", "--host", "0.0.0.0", "--port", "3000"]
