@@ -1,11 +1,35 @@
-server {
-    listen ${PORT:-8080};
-    server_name localhost;
+# From your repo root
+cat > nginx.conf.template <<'EOF'
+worker_processes  auto;
 
-    root /usr/share/nginx/html;
-    index index.html;
+events { worker_connections  1024; }
 
-    location / {
-        try_files $uri $uri/ /index.html;
+http {
+  include       /etc/nginx/mime.types;
+  default_type  application/octet-stream;
+  sendfile on;
+  tcp_nopush on;
+  tcp_nodelay on;
+
+  server {
+    # Cloud Run provides PORT; we must listen on it (IPv4 + IPv6)
+    listen       ${PORT};
+    listen       [::]:${PORT};
+    server_name  _;
+
+    root   /usr/share/nginx/html;
+    index  index.html;
+
+    # Health endpoint (useful for debugging readiness)
+    location = /healthz {
+      return 200 "ok";
+      add_header Content-Type text/plain;
     }
+
+    # Serve static files; fallback to SPA entrypoint
+    location / {
+      try_files $uri $uri/ /index.html;
+    }
+  }
 }
+EOF
