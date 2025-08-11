@@ -1,4 +1,4 @@
-# From your repo root
+# 1) Replace nginx.conf.template with a Cloud Run–safe config (IPv4 only)
 cat > nginx.conf.template <<'EOF'
 worker_processes  auto;
 
@@ -11,25 +11,35 @@ http {
   tcp_nopush on;
   tcp_nodelay on;
 
+  # Send logs to stdout/stderr for Cloud Run
+  access_log /dev/stdout;
+  error_log  /dev/stderr;
+
   server {
-    # Cloud Run provides PORT; we must listen on it (IPv4 + IPv6)
-    listen       ${PORT};
-    listen       [::]:${PORT};
+    # IMPORTANT: IPv4 only for Cloud Run
+    listen       0.0.0.0:${PORT};
     server_name  _;
 
     root   /usr/share/nginx/html;
     index  index.html;
 
-    # Health endpoint (useful for debugging readiness)
+    # Health check
     location = /healthz {
       return 200 "ok";
       add_header Content-Type text/plain;
     }
 
-    # Serve static files; fallback to SPA entrypoint
+    # SPA fallback
     location / {
       try_files $uri $uri/ /index.html;
     }
   }
 }
 EOF
+# one-line: ensures Nginx listens on the Cloud Run PORT via IPv4 only and serves your Angular app.
+
+# 2) Commit and push to trigger rebuild+redeploy
+git add nginx.conf.template
+git commit -m "Cloud Run: IPv4-only listen and SPA fallback in nginx.conf.template"
+git push
+# one-line: deploys with the fixed Nginx config.
